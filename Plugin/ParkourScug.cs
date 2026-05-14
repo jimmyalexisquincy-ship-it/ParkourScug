@@ -119,7 +119,6 @@ namespace ParkourScugPlugin
             }
 
             // Wall Latch
-            RWCustom.Custom.LogImportant(wallLatchCounter + " ; " + wallLatchExitCounter);
             if (!(input.x == 0) && player.IsTileSolid(0, input.x, 0) && player.IsTileSolid(1, input.x, 0) && wallLatchCounter < 200)
             {
                 playerAnimation = ParkourScugAnimationIndex.WallLatch;
@@ -205,12 +204,12 @@ namespace ParkourScugPlugin
             }
 
             // Better pole climb
-            if (betterPoleSlide == true)
+            if (betterPoleSlide)
             {
                 if (player.slideUpPole > 10)
                 {
                     if (oddTick) player.slideUpPole += 1;
-                    if (player.animation == Player.AnimationIndex.GetUpToBeamTip)
+                    if (player.animation == Player.AnimationIndex.GetUpToBeamTip && input.y == 1 && slideUpPole > 30)
                     {
                         player.animation = Player.AnimationIndex.None;
                         player.firstChunk.vel.y += Mathf.Sqrt(player.slideUpPole - 10) + 5;
