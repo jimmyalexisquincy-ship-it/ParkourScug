@@ -32,6 +32,7 @@
   </PropertyGroup>
   <ItemGroup>
     <Compile Include="ParkourScug.cs" />
+    <Compile Include="ParkourScugAbilities.cs" />
     <Compile Include="ParkourScugAnimation.cs" />
     <Compile Include="ParkourScugPlugin.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

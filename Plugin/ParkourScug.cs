@@ -83,10 +83,15 @@ namespace ParkourScugPlugin
         public virtual void ParkourScugTick(On.Player.orig_Update orig, bool eu)
         {
             AnimationTick();
+            AbilityTick();
             MovementTick();
             orig(player, eu);
 
             ///Custom.LogImportant("Var Tracker: " + player.slideUpPole);
+        }
+        private void AbilityTick()
+        {
+
         }
         private void MovementTick()
         {
