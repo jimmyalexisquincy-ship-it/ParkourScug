@@ -29,6 +29,10 @@ namespace ParkourScugPlugin.RevenantAbilities
             player.spearOnBack = null;
             originalThrowingSkill = -1;
         }
+        protected override void Tick()
+        {
+            base.Tick();
+        }
         protected override void PlayerTick()
         {
             if (UnityEngine.Random.value < 0.01f)
@@ -49,11 +53,22 @@ namespace ParkourScugPlugin.RevenantAbilities
         public HunterProgram() : base() { }
         public HunterProgram(Player player) : base(player) { }
         public HunterProgram(Creature creature) : base(creature) { }
+        public override string ToString()
+        {
+            return "ScavHunter";
+        }
     }
 
 
     public abstract class MechanicalProgram
     {
+        public static string GetProgramName(MechanicalProgram program)
+        {
+            if (program == null) return "Empty";
+            return program.ToString() + ".Exe";
+        }
+
+
         public bool inPlayer;
         protected Player.InputPackage PlayerInput => player.input[0];
         protected bool abstracted = false;
@@ -101,6 +116,7 @@ namespace ParkourScugPlugin.RevenantAbilities
             creature = player;
             inPlayer = true;
             playerData = ParkourScugPlugin.GetParkourScugData(player);
+            abstracted = false;
             ConnectToPlayer();
         }
         public void Disconnect()
@@ -118,6 +134,7 @@ namespace ParkourScugPlugin.RevenantAbilities
 
         public void Update()
         {
+            Custom.LogImportant("wawa");
             if (abstracted || creature == null) { return; }
             Tick();
             if (inPlayer)
@@ -144,5 +161,45 @@ namespace ParkourScugPlugin.RevenantAbilities
         protected virtual void CreatureTick() { }
         protected virtual void UseAbility() { }
         protected virtual void Throw(Creature.Grasp grasp) { }
+
+        protected virtual Color GetColor() { return Color.white; }
+    }
+    
+    
+    public class ProgramedPearl
+    {
+        public DataPearl pearl;
+        public MechanicalProgram program = null;
+        public bool HasProgram => program != null;
+        
+        
+        public ProgramedPearl(DataPearl pearl)
+        {
+            this.pearl = pearl;
+        }
+        public void DownloadProgram(MechanicalProgram program)
+        {
+            if (program == null)
+            {
+                this.program = null;
+                Custom.LogImportant("Pearl Did Not Downloaded");
+                return;
+            }
+            this.program = program;
+            program.Disconnect();
+            Custom.LogImportant("Pearl Downloaded " + MechanicalProgram.GetProgramName(program));
+        }
+        public MechanicalProgram ExportProgram()
+        {
+            if (!HasProgram)
+            {
+                Custom.LogImportant("Pearl Did Not Export ");
+                return null;
+            }
+            MechanicalProgram export = this.program;
+            this.program = null;
+            Custom.LogImportant("Pearl Exported " + MechanicalProgram.GetProgramName(export));
+            return export;
+        }
     }
 }

@@ -1,7 +1,11 @@
 {
   "ExpandedNodes": [
     "",
+    "\\Mod",
+    "\\Mod\\ParkourScug",
+    "\\Mod\\ParkourScug\\slugbase",
     "\\Plugin"
   ],
+  "SelectedNode": "\\Plugin\\ParkourScugPlugin.slnx",
   "PreviewInSolutionExplorer": false
 }

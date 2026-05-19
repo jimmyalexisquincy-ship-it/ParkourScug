@@ -14,6 +14,8 @@ using ParkourScugPlugin.ParkourScug;
 using JetBrains.Annotations;
 using ParkourScugPlugin.RevenantAbilities;
 using System.Reflection;
+using IL.Menu;
+using BepInEx;
 
 namespace ParkourScugPlugin
 {
@@ -23,8 +25,23 @@ namespace ParkourScugPlugin
         public MechanicalProgram program;
         private Room room => player.room;
         private bool HasProgram => program != null;
+        private bool playerInitialized = false;
         private Player.InputPackage input => player.input[0];
         private PlayerGraphics GetPlayerGraphics() => (player.graphicsModule as PlayerGraphics);
+
+        private Player.Grasp FirstGrasp
+        {
+            get
+            {
+                if (player.grasps[0] == null) return player.grasps[1];
+                else return player.grasps[0];
+            }
+            set
+            {
+                if (player.grasps[0] == null) player.grasps[1] = value;
+                else player.grasps[0] = value;
+            }
+        }
 
         public ParkourScugAnimation animationData;
         public ParkourScugAnimationIndex playerAnimation
@@ -64,6 +81,7 @@ namespace ParkourScugPlugin
 
         public int wallLatchCounter = 0;
         public int wallLatchExitCounter = 0;
+        public int uploadCounter = 0;
 
         public int superRollPounce = 0;
         public float superRollPounceEnterVelocity = 0;
@@ -86,7 +104,11 @@ namespace ParkourScugPlugin
         }
         public virtual void ParkourScugTick(On.Player.orig_Update orig, bool eu)
         {
-            if (!HasProgram) program = new HunterProgram(player);
+            if (!playerInitialized)
+            {
+                playerInitialized = true;
+                InitializePlayer();
+            }
             AnimationTick();
             AbilityTick();
             MovementTick();
@@ -94,8 +116,50 @@ namespace ParkourScugPlugin
 
             ///Custom.LogImportant("Var Tracker: " + player.slideUpPole);
         }
+        private void InitializePlayer()
+        {
+            program = new HunterProgram(player);
+        }
         private void AbilityTick()
         {
+            if (FirstGrasp?.grabbed is DataPearl && input.y == 1 && input.spec)
+            {
+                DataPearl pearl = FirstGrasp.grabbed as DataPearl;
+                ProgramedPearl pearlData = GetPearlData(pearl);
+                if (uploadCounter == 0)
+                {
+                    room.PlaySound(SoundID.Centipede_Electric_Charge_LOOP, player.firstChunk);
+                }
+                if (uploadCounter >= 100)
+                {
+                    uploadCounter = 0;
+                    room.PlaySound(MoreSlugcats.MoreSlugcatsEnums.MSCSoundID.Karma_Pitch_Discovery, player.firstChunk);
+                    player.stun = 3;
+                    MechanicalProgram pearlProgram = pearlData.ExportProgram();
+                    pearlData.DownloadProgram(program);
+                    if (pearlProgram == null)
+                    {
+                        program = null;
+                        Custom.LogImportant("Player Did Not Download!");
+                    }
+                    else
+                    {
+                        program = pearlProgram;
+                        program.ConnectPlayer(player);
+                        Custom.LogImportant("Player Downloaded " + MechanicalProgram.GetProgramName(program));
+                    }
+                }
+                else
+                {
+                    uploadCounter++;
+                }
+            }
+            else
+            {
+                uploadCounter = 0;
+            }
+
+
             if (!HasProgram) return;
             program.Update();
         }

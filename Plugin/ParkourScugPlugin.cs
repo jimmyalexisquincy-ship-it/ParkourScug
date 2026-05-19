@@ -6,6 +6,7 @@ using RWCustom;
 using System.Runtime.CompilerServices;
 using UnityEngine;
 using UnityEngine.Rendering;
+using ParkourScugPlugin.RevenantAbilities;
 
 namespace ParkourScugPlugin
 {
@@ -16,6 +17,12 @@ namespace ParkourScugPlugin
         public static ManualLogSource logger;
         public static SlugBase.SlugBaseCharacter RevenantSlugBaseCharacter => SlugBase.PlayerManager.GetCustomPlayer("revenant");
 
+        public static ParkourScugData GetParkourScugData(Player player) => PlayerExtensionData.GetValue(player, k => new ParkourScugData(player));
+        private static readonly ConditionalWeakTable<Player, ParkourScugData> PlayerExtensionData = new ConditionalWeakTable<Player, ParkourScugData>();
+        public static ProgramedPearl GetPearlData(DataPearl pearl) => PearlExtensionData.GetValue(pearl, k => new ProgramedPearl(pearl));
+        private static readonly ConditionalWeakTable<DataPearl, ProgramedPearl> PearlExtensionData = new ConditionalWeakTable<DataPearl, ProgramedPearl>();
+
+
         private bool IsParkourScug(Player player) { return player.SlugCatClass.ToString().Equals("revenant"); }
 
         public void OnEnable()
@@ -25,12 +32,11 @@ namespace ParkourScugPlugin
             On.Player.Update += PlayerUpdateTick;
             On.SlugcatHand.EngageInMovement += SlugcatHandEngageInMovement;
             On.Player.ThrowObject += PlayerThrow;
+            //add on pearl
 
             logger.LogInfo("Parkour Scug plugin loaded!");
         }
 
-        private static readonly ConditionalWeakTable<Player, ParkourScugData> PlayerExtensionData = new ConditionalWeakTable<Player, ParkourScugData>();
-        public static ParkourScugData GetParkourScugData(Player player) => PlayerExtensionData.GetValue(player, k => new ParkourScugData(player));
         private void PlayerUpdateTick(On.Player.orig_Update orig, Player player, bool eu)
         {
             if (!IsParkourScug(player))
