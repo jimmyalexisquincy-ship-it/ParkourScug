@@ -281,7 +281,11 @@ namespace ParkourScugPlugin
                 player.bodyChunks[0].vel.x = 0.0f;
                 player.bodyChunks[0].vel.y += 10.0f;
                 player.bodyChunks[1].vel.x = 0.0f;
-                player.slideUpPole = (int)(-previousVelocity.y < Math.Abs(previousVelocity.x) ? Mathf.Sqrt(previousVelocity.magnitude) + 6 : 0) * 2; betterPoleSlide = true;
+                if ( -previousVelocity.y < Math.Abs(previousVelocity.x) )
+                {
+                    player.slideUpPole = (int) (Mathf.Abs(previousVelocity.x) + Mathf.Sqrt(previousVelocity.y));
+                    betterPoleSlide = true;
+                }
             }
 
             // Better pole climb

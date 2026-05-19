@@ -32,7 +32,7 @@ namespace ParkourScugPlugin
             On.Player.Update += PlayerUpdateTick;
             On.SlugcatHand.EngageInMovement += SlugcatHandEngageInMovement;
             On.Player.ThrowObject += PlayerThrow;
-            //add on pearl
+            On.DataPearl.Update += DataPearl_Update;
 
             logger.LogInfo("Parkour Scug plugin loaded!");
         }
@@ -47,6 +47,7 @@ namespace ParkourScugPlugin
 
             GetParkourScugData(player).ParkourScugTick(orig, eu);
         }
+
         private bool SlugcatHandEngageInMovement(On.SlugcatHand.orig_EngageInMovement orig, SlugcatHand hand)
         {
             Player player = hand.connection.owner as Player;
@@ -66,6 +67,11 @@ namespace ParkourScugPlugin
             }
             
             GetParkourScugData(player).ThrowObject(orig, grasp, eu);
+        }
+        private void DataPearl_Update(On.DataPearl.orig_Update orig, DataPearl pearl, bool eu)
+        {
+            GetPearlData(pearl).Update();
+            orig(pearl, eu);
         }
     }
 }
