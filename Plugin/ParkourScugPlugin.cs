@@ -21,6 +21,8 @@ namespace ParkourScugPlugin
         private static readonly ConditionalWeakTable<Player, ParkourScugData> PlayerExtensionData = new ConditionalWeakTable<Player, ParkourScugData>();
         public static ProgramedPearl GetPearlData(DataPearl pearl) => PearlExtensionData.GetValue(pearl, k => new ProgramedPearl(pearl));
         private static readonly ConditionalWeakTable<DataPearl, ProgramedPearl> PearlExtensionData = new ConditionalWeakTable<DataPearl, ProgramedPearl>();
+        public static AbstractObjectExtensionData GetAbstractObjectData(AbstractPhysicalObject obj) => AbstractPhysicalObjectExtensionData.GetValue(obj, k => new AbstractObjectExtensionData(obj));
+        private static readonly ConditionalWeakTable<AbstractPhysicalObject, AbstractObjectExtensionData> AbstractPhysicalObjectExtensionData = new ConditionalWeakTable<AbstractPhysicalObject, AbstractObjectExtensionData>();
 
 
         private bool IsParkourScug(Player player) { return player.SlugCatClass.ToString().Equals("revenant"); }
@@ -33,6 +35,8 @@ namespace ParkourScugPlugin
             On.SlugcatHand.EngageInMovement += SlugcatHandEngageInMovement;
             On.Player.ThrowObject += PlayerThrow;
             On.DataPearl.Update += DataPearl_Update;
+            On.DataPearl.InitiateSprites += DataPearl_InitiateSprites;
+            On.DataPearl.DrawSprites += DataPearl_DrawSprites;
 
             logger.LogInfo("Parkour Scug plugin loaded!");
         }
@@ -65,13 +69,23 @@ namespace ParkourScugPlugin
                 orig(player, grasp, eu);
                 return;
             }
-            
+
             GetParkourScugData(player).ThrowObject(orig, grasp, eu);
         }
         private void DataPearl_Update(On.DataPearl.orig_Update orig, DataPearl pearl, bool eu)
         {
             GetPearlData(pearl).Update();
             orig(pearl, eu);
+        }
+        private void DataPearl_InitiateSprites(On.DataPearl.orig_InitiateSprites orig, DataPearl pearl, RoomCamera.SpriteLeaser sLeaser, RoomCamera rCam)
+        {
+            orig(pearl, sLeaser, rCam);
+            GetPearlData(pearl).InitiateSprites(sLeaser, rCam);
+        }
+        private void DataPearl_DrawSprites(On.DataPearl.orig_DrawSprites orig, DataPearl pearl, RoomCamera.SpriteLeaser sLeaser, RoomCamera rCam, float timeStacker, Vector2 camPos)
+        {
+            orig(pearl, sLeaser, rCam, timeStacker, camPos);
+            GetPearlData(pearl).DrawSprites(sLeaser, rCam, timeStacker, camPos);
         }
     }
 }
