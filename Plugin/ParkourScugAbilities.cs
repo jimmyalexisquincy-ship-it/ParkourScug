@@ -13,10 +13,40 @@ using UnityEngine.EventSystems;
 
 namespace ParkourScugPlugin.RevenantAbilities
 {
+    public class MirosKillerProgram : MechanicalProgram
+    {
+        protected override Color ProgramColor => new ColorByte(190, 0, 130);
+        
+        
+        public override void InitializeHologram()
+        {
+            base.InitializeHologram();
+            hologram = new NSHSwarmer.Shape(null, NSHSwarmer.Shape.ShapeType.Sphere, new Vector3(0f, 0f, 0f), 10f, 10f);
+            hologram.subShapes.Add(new NSHSwarmer.Shape(null, NSHSwarmer.Shape.ShapeType.Ribbon, new Vector3(0f, 0f, 0f), 20f, 20f));
+            hologram.subShapes.Add(new NSHSwarmer.Shape(null, NSHSwarmer.Shape.ShapeType.Sphere, new Vector3(0f, 0f, 0f), 20f, 20f));
+        }
+        public override void PlayerTick()
+        {
+            float num1 = 1.1f;
+            player.bodyChunks[0].vel.x *= num1;
+            player.bodyChunks[1].vel.x *= num1;
+        }
+        protected override void Tick()
+        {
+            if (!abstracted || !(Owner is DataPearl)) return;
+            // Add pearl light
+        }
+        
+        
+        public MirosKillerProgram() : base() { }
+        public MirosKillerProgram(Player player) : base(player) { }
+        public MirosKillerProgram(Creature creature) : base(creature) { }
+        public override string ToString() { return "MirosKiller"; }
+    }
     public class HunterProgram : MechanicalProgram
     {
         private int originalThrowingSkill;
-        protected override Color ProgramColor => new Color(.8f, .1f, .1f);
+        protected override Color ProgramColor => new ColorByte(250, 70, 70);
 
         
         public override void InitializeHologram()
@@ -41,10 +71,6 @@ namespace ParkourScugPlugin.RevenantAbilities
             originalThrowingSkill = -1;
             playerData.betterSlide = true;
         }
-        protected override void Tick()
-        {
-            base.Tick();
-        }
         protected override void PlayerTick()
         {
             if (UnityEngine.Random.value < 0.01f)
@@ -59,7 +85,7 @@ namespace ParkourScugPlugin.RevenantAbilities
             player.bodyChunks[0].vel.y *= 1.5f;
             player.bodyChunks[1].vel.y *= 1.5f;
             player.standing = true;
-            player.room.AddObject(new ExplosionSpikes(player.room, player.bodyChunks[1].pos + new Vector2(0f, 0f - player.bodyChunks[1].rad), 2, 7f, 5f, 5.5f, 20f, new Color(1f, 1f, 1f, 0.5f)));
+            player.room.AddObject(new ExplosionSpikes(player.room, player.bodyChunks[1].pos + new Vector2(0f, 0f - player.bodyChunks[1].rad), 2, 7f, 5f, 5.5f, 30f, new Color(1f, 1f, 1f, 0.5f)));
         }
         protected override void Throw(Creature.Grasp grasp)
         {
@@ -187,8 +213,8 @@ namespace ParkourScugPlugin.RevenantAbilities
         public void Update()
         {
             UpdateAnimation();
-            if (abstracted || creature == null) { return; }
             Tick();
+            if (abstracted || creature == null) { return; }
             if (inPlayer)
             {
                 PlayerTick();
