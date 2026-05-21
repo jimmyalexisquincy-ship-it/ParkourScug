@@ -22,20 +22,24 @@ namespace ParkourScugPlugin.RevenantAbilities
         public override void InitializeHologram()
         {
             base.InitializeHologram();
-            hologram = new NSHSwarmer.Shape(null, NSHSwarmer.Shape.ShapeType.Main, new Vector3(0f, 0f, 0f), 0f, 0f);
-            hologram.subShapes.Add(new NSHSwarmer.Shape(null, NSHSwarmer.Shape.ShapeType.Shell, new Vector3(0f, 0f, 0f), 1f, 1f));
+            hologram = new NSHSwarmer.Shape(null, NSHSwarmer.Shape.ShapeType.Sphere, new Vector3(0f, 0f, 0f), 0f, 0f);
+            hologram.subShapes.Add(new NSHSwarmer.Shape(null, NSHSwarmer.Shape.ShapeType.Shell, new Vector3(0f, 0f, 0f), 20f, 20f));
+            //hologram.subShapes.Add(new NSHSwarmer.Shape(null, NSHSwarmer.Shape.ShapeType.Ribbon, new Vector3(0f, 0f, 0f), 20f, 10f));
+            hologram.subShapes.Add(new NSHSwarmer.Shape(null, NSHSwarmer.Shape.ShapeType.Diamond, new Vector3(0f, 0f, 0f), 10f, 10f));
         }
         protected override void ConnectToPlayer()
         {
             originalThrowingSkill = player.slugcatStats.throwingSkill;
             player.slugcatStats.throwingSkill = 3;
             player.spearOnBack = new Player.SpearOnBack(player);
+            playerData.betterSlide = false;
         }
         protected override void DisconnectFromPlayer()
         {
             player.slugcatStats.throwingSkill = originalThrowingSkill;
             player.spearOnBack = null;
             originalThrowingSkill = -1;
+            playerData.betterSlide = true;
         }
         protected override void Tick()
         {
@@ -45,13 +49,25 @@ namespace ParkourScugPlugin.RevenantAbilities
         {
             if (UnityEngine.Random.value < 0.01f)
             {
-                player.room.AddObject(new Explosion.ExplosionLight(player.firstChunk.pos, 120f, 1f, 30, new Color(135 / 256f, 107 / 256f, 31 / 256f)));
-                player.room.PlaySound(SoundID.Death_Lightning_Spark_Object, player.firstChunk.pos, 0.2f, 1f);
+                Color color = ColorByte(135, 107, 31);
+                player.room.AddObject(new Explosion.ExplosionLight(player.firstChunk.pos, 120f, 1f, 30, color));
+                player.room.PlaySound(SoundID.Death_Lightning_Spark_Object, player.firstChunk.pos, 0.15f, Mathf.Lerp(1f, 1.4f, UnityEngine.Random.value));
             }
+        }
+        protected override void PlayerJump()
+        {
+            player.bodyChunks[0].vel.y *= 1.5f;
+            player.bodyChunks[1].vel.y *= 1.5f;
+            player.standing = true;
+            player.room.AddObject(new ExplosionSpikes(player.room, player.bodyChunks[1].pos + new Vector2(0f, 0f - player.bodyChunks[1].rad), 2, 7f, 5f, 5.5f, 20f, new Color(1f, 1f, 1f, 0.5f)));
         }
         protected override void Throw(Creature.Grasp grasp)
         {
             if (PlayerInput.y == 1)
+            {
+                player.animation = Player.AnimationIndex.Flip;
+            }
+            else if (PlayerInput.y == -1)
             {
                 player.animation = Player.AnimationIndex.Flip;
             }
@@ -67,6 +83,7 @@ namespace ParkourScugPlugin.RevenantAbilities
 
     public abstract class MechanicalProgram
     {
+        protected static Color ColorByte(int r, int g, int b) => new Color(r / 256f, g / 256f, b / 256f);
         public static string GetProgramName(MechanicalProgram program)
         {
             if (program == null) return "Empty";
@@ -201,9 +218,17 @@ namespace ParkourScugPlugin.RevenantAbilities
             }
             return null;
         }
+        public void Jump()
+        {
+            if (inPlayer) PlayerJump();
+        }
         public void ThrowObject(Creature.Grasp grasp)
         {
             Throw(grasp);
+        }
+        public void FadeHologram(float fade)
+        {
+            holoFade = fade;
         }
         public virtual void DrawHologram(RoomCamera.SpriteLeaser sLeaser, RoomCamera rCam, float timeStacker, Vector2 camPos, int sprite)
         {
@@ -232,10 +257,6 @@ namespace ParkourScugPlugin.RevenantAbilities
             // Hologram stuff (stolen from NSH)
             if (showHologram && hologram != null)
             {
-                if (true)
-                {
-                    Custom.LogImportant("HoloFade: " + holoFade + " HoloErrors: " + holoErrors + " HologramCounter: " + hologramCounter);
-                }
                 if (wantToShowHologram) hologramCounter++;
                 else hologramCounter--;
                 hologramCounter = Custom.IntClamp(hologramCounter, 0, 160);
@@ -264,6 +285,7 @@ namespace ParkourScugPlugin.RevenantAbilities
             holoFade = 1f;
         }
         public virtual void InitializeHologram() { HologramInit(); }
+        protected virtual void PlayerJump() { }
         protected virtual void ConnectToPlayer() { }
         protected virtual void DisconnectFromPlayer() { }
         protected virtual void Tick() { }
@@ -329,6 +351,13 @@ namespace ParkourScugPlugin.RevenantAbilities
             else
             {
 
+            }
+        }
+        public void FadeHologram(float fade)
+        {
+            if (HasProgram)
+            {
+                program.FadeHologram(fade);
             }
         }
 

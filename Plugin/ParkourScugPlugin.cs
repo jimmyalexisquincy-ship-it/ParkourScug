@@ -34,6 +34,7 @@ namespace ParkourScugPlugin
             On.Player.Update += PlayerUpdateTick;
             On.SlugcatHand.EngageInMovement += SlugcatHandEngageInMovement;
             On.Player.ThrowObject += PlayerThrow;
+            On.Player.Jump += PlayerJump;
             On.DataPearl.Update += DataPearl_Update;
             On.DataPearl.InitiateSprites += DataPearl_InitiateSprites;
             On.DataPearl.DrawSprites += DataPearl_DrawSprites;
@@ -71,6 +72,15 @@ namespace ParkourScugPlugin
             }
 
             GetParkourScugData(player).ThrowObject(orig, grasp, eu);
+        }
+        private void PlayerJump(On.Player.orig_Jump orig, Player player)
+        {
+            if (!IsParkourScug(player))
+            {
+                orig(player);
+                return;
+            }
+            GetParkourScugData(player).Jump(orig);
         }
         private void DataPearl_Update(On.DataPearl.orig_Update orig, DataPearl pearl, bool eu)
         {

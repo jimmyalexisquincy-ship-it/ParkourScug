@@ -96,6 +96,8 @@ namespace ParkourScugPlugin
         private Player.AnimationIndex previousAnimation = Player.AnimationIndex.None;
         private Vector2 previousVelocity = Vector2.zero;
 
+        public bool betterSlide = true;
+
 
         public ParkourScugData(Player player)
         {
@@ -134,7 +136,13 @@ namespace ParkourScugPlugin
                 {
                     uploadCounter = 0;
                     room.PlaySound(MoreSlugcats.MoreSlugcatsEnums.MSCSoundID.Karma_Pitch_Discovery, player.firstChunk);
-                    player.stun = 3;
+                    player.SaintStagger(120);
+                    room.PlaySound(SoundID.Centipede_Shock, player.firstChunk);
+                    for (int i = 0; i < 6; i++)
+                    {
+                        room.AddObject(new Spark(player.firstChunk.pos, Custom.RNV() * Mathf.Lerp(4f, 14f, UnityEngine.Random.value), new Color(0.7f, 0.7f, 1f), null, 8, 14));
+                    }
+
                     MechanicalProgram pearlProgram = pearlData.ExportProgram();
                     pearlData.DownloadProgram(program);
                     if (pearlProgram == null)
@@ -152,6 +160,7 @@ namespace ParkourScugPlugin
                 else
                 {
                     uploadCounter++;
+                    pearlData.FadeHologram(1f - (uploadCounter / 100f));
                 }
             }
             else
@@ -310,60 +319,63 @@ namespace ParkourScugPlugin
 
             /* ------------------------------ Belly Slide Mechanics ------------------------------ */
 
-            if (player.animation == Player.AnimationIndex.Roll && previousAnimation != Player.AnimationIndex.Roll && input.jmp && bellySlideExitCounter > 10)
+            if (betterSlide)
             {
-                player.animation = Player.AnimationIndex.BellySlide;
-                player.rollCounter = 0;
-                player.allowRoll = -1;
-            }
-
-            if (player.animation == Player.AnimationIndex.BellySlide)
-            {
-                bellySlideExitCounter = 0;
-
-                int rollCounter = player.rollCounter; /// For some reason, rollCounter is used for the belly slide. the slideCounter var is actually the turn around.
-                Vector2 feetPos = player.bodyChunks[1].pos;
-
-                if (rollCounter >= 0 && rollCounter < 3)
+                if (player.animation == Player.AnimationIndex.Roll && previousAnimation != Player.AnimationIndex.Roll && input.jmp && bellySlideExitCounter > 10)
                 {
-                    BoostDir((input.jmp ? 24.0f : 12.0f), -5.5f);
+                    player.animation = Player.AnimationIndex.BellySlide;
+                    player.rollCounter = 0;
+                    player.allowRoll = -1;
+                }
 
-                    if (rollCounter == 1)
+                if (player.animation == Player.AnimationIndex.BellySlide)
+                {
+                    bellySlideExitCounter = 0;
+
+                    int rollCounter = player.rollCounter; /// For some reason, rollCounter is used for the belly slide. the slideCounter var is actually the turn around.
+                    Vector2 feetPos = player.bodyChunks[1].pos;
+
+                    if (rollCounter >= 0 && rollCounter < 3)
                     {
-                        BoostEffect();
+                        BoostDir((input.jmp ? 24.0f : 12.0f), -5.5f);
+
+                        if (rollCounter == 1)
+                        {
+                            BoostEffect();
+                        }
+                    }
+                    if (rollCounter >= 3 && rollCounter < 20)
+                    {
+                        player.rollCounter = 14;
+                        BoostDir(4.0f, 0.0f);
+
+                        room.AddObject(new Spark(
+                            feetPos,
+                            Custom.DegToVec((-input.x) * Mathf.Lerp(30f, 70f, UnityEngine.Random.value)) * Mathf.Lerp(6f, 8f, UnityEngine.Random.value),
+                            new Color(1f, 0.8f, 0.5f),
+                            null, 6, 11
+                            ));
+                        room.PlaySound(SoundID.Cyan_Lizard_Prepare_Small_Jump, feetPos, 1.0f, 3.0f);
+                    }
+
+                    if (input.jmp)
+                    {
+                        player.longBellySlide = true;
+                    }
+                    else
+                    {
+                        player.longBellySlide = false;
                     }
                 }
-                if (rollCounter >= 3 && rollCounter < 20)
+                else if (bellySlideExitCounter < 20)
                 {
-                    player.rollCounter = 14;
-                    BoostDir(4.0f, 0.0f);
+                    bellySlideExitCounter++;
 
-                    room.AddObject(new Spark(
-                        feetPos, 
-                        Custom.DegToVec((-input.x) * Mathf.Lerp(30f, 70f, UnityEngine.Random.value)) * Mathf.Lerp(6f, 8f, UnityEngine.Random.value), 
-                        new Color(1f, 0.8f, 0.5f), 
-                        null, 6, 11
-                        ));
-                    room.PlaySound(SoundID.Cyan_Lizard_Prepare_Small_Jump, feetPos, 1.0f, 3.0f);
-                }
-
-                if (input.jmp)
-                {
-                    player.longBellySlide = true;
-                }
-                else
-                {
-                    player.longBellySlide = false;
-                }
-            }
-            else if (bellySlideExitCounter < 20)
-            {
-                bellySlideExitCounter++;
-
-                // Larger Coyote Frames
-                if (bellySlideExitCounter < 10)
-                {
-                    player.canJump += 1;
+                    // Larger Coyote Frames
+                    if (bellySlideExitCounter < 10)
+                    {
+                        player.canJump += 1;
+                    }
                 }
             }
 
@@ -376,7 +388,15 @@ namespace ParkourScugPlugin
         }
         private void AnimationTick()
         {
-            
+
+        }
+        public void Jump(On.Player.orig_Jump orig)
+        {
+            orig(player);
+            if (HasProgram)
+            {
+                program.Jump();
+            }
         }
         public void ThrowObject(On.Player.orig_ThrowObject orig, int grasp, bool eu)
         {
