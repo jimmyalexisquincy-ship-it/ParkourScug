@@ -13,10 +13,23 @@ using UnityEngine.EventSystems;
 
 namespace ParkourScugPlugin.RevenantAbilities
 {
+    public class MirosKillerProgram : MechanicalProgram
+    {
+        protected override Color ProgramColor => new ColorByte(190, 0, 130);
+
+        
+        public override void InitializeHologram()
+        {
+            base.InitializeHologram();
+            hologram = new NSHSwarmer.Shape(null, NSHSwarmer.Shape.ShapeType.Sphere, new Vector3(0f, 0f, 0f), 0f, 0f);
+            hologram.subShapes.Add(new NSHSwarmer.Shape(null, NSHSwarmer.Shape.ShapeType.Ribbon, new Vector3(0f, 0f, 0f), 20f, 20f));
+            hologram.subShapes.Add(new NSHSwarmer.Shape(null, NSHSwarmer.Shape.ShapeType.Sphere, new Vector3(0f, 0f, 0f), 20f, 20f));
+        }
+    }
     public class HunterProgram : MechanicalProgram
     {
         private int originalThrowingSkill;
-        protected override Color ProgramColor => new Color(.8f, .1f, .1f);
+        protected override Color ProgramColor => new ColorByte(250, 70, 70);
 
         
         public override void InitializeHologram()
