@@ -15,21 +15,54 @@ namespace ParkourScugPlugin.RevenantAbilities
 {
     public class MirosKillerProgram : MechanicalProgram
     {
-        protected override Color ProgramColor => new ColorByte(190, 0, 130);
-        
-        
+        private NSHSwarmer.Shape enemyHighlighter;
+        protected override Color ProgramColor => ColorByte(190, 0, 130);
+
+
         public override void InitializeHologram()
         {
             base.InitializeHologram();
-            hologram = new NSHSwarmer.Shape(null, NSHSwarmer.Shape.ShapeType.Sphere, new Vector3(0f, 0f, 0f), 10f, 10f);
-            hologram.subShapes.Add(new NSHSwarmer.Shape(null, NSHSwarmer.Shape.ShapeType.Ribbon, new Vector3(0f, 0f, 0f), 20f, 20f));
-            hologram.subShapes.Add(new NSHSwarmer.Shape(null, NSHSwarmer.Shape.ShapeType.Sphere, new Vector3(0f, 0f, 0f), 20f, 20f));
+            if (abstracted)
+            {
+                hologram = new NSHSwarmer.Shape(null, NSHSwarmer.Shape.ShapeType.Sphere, new Vector3(0f, 0f, 0f), 10f, 10f);
+                hologram.subShapes.Add(new NSHSwarmer.Shape(null, NSHSwarmer.Shape.ShapeType.Sphere, new Vector3(0f, 0f, 0f), 20f, 20f));
+            }
+            else if (inPlayer)
+            {
+                hologram = new NSHSwarmer.Shape(null, NSHSwarmer.Shape.ShapeType.Sphere, new Vector3(0f, 0f, 0f), 30f, 30f);
+                enemyHighlighter = new NSHSwarmer.Shape(null, NSHSwarmer.Shape.ShapeType.Cube, new Vector3(0f, 0f, 0f), 20f, 20f);
+                hologram.subShapes.Add(enemyHighlighter);
+                playerData.animationData.AddSprites(GetHologramSprites());
+            }
         }
-        public override void PlayerTick()
+        protected override void ConnectToPlayer()
         {
-            float num1 = 1.1f;
-            player.bodyChunks[0].vel.x *= num1;
-            player.bodyChunks[1].vel.x *= num1;
+            playerData.canMaul = true;
+            showHologram = true;
+        }
+        protected override void DisconnectFromPlayer()
+        {
+            playerData.canMaul = false;
+        }
+        protected override void PlayerTick()
+        {
+            if (player.animation == Player.AnimationIndex.None && player.standing && player.input[0].x != 0 && player.canJump > 0)
+            {
+                player.bodyChunks[0].vel.x += player.input[0].x;
+                player.bodyChunks[1].vel.x += player.input[0].x;
+                player.room.AddObject(new ExplosionSpikes(player.room, player.bodyChunks[1].pos + new Vector2(0f, 0f - player.bodyChunks[1].rad), 1, 7f, 5f, 5.5f, 10f, new Color(1f, 1f, 1f, 0.5f)));
+            }
+
+            int num12 = 0;
+            if (ModManager.MMF && (player.grasps[0] == null || !(player.grasps[0].grabbed is Creature)) && player.grasps[1] != null && player.grasps[1].grabbed is Creature)
+            {
+                num12 = 1;
+            }
+            if (player.input[0].pckp && player.grasps[num12] != null && player.grasps[num12].grabbed is Creature && player.maulTimer == 39)
+            {
+                Creature creature = player.grasps[num12].grabbed as Creature;
+                creature.Violence(player.bodyChunks[0], new Vector2(0f, 0f), player.grasps[num12].grabbedChunk, null, Player.DamageType.Bite, 4f, 15f);
+            }
         }
         protected override void Tick()
         {
@@ -46,7 +79,7 @@ namespace ParkourScugPlugin.RevenantAbilities
     public class HunterProgram : MechanicalProgram
     {
         private int originalThrowingSkill;
-        protected override Color ProgramColor => new ColorByte(250, 70, 70);
+        protected override Color ProgramColor => ColorByte(250, 70, 70);
 
         
         public override void InitializeHologram()
@@ -228,7 +261,7 @@ namespace ParkourScugPlugin.RevenantAbilities
                 CreatureTick();
             }
         }
-        public FSprite[] GetHologramSprites(RoomCamera rCam)
+        public FSprite[] GetHologramSprites()
         {
             if (hologram != null)
             {
@@ -237,7 +270,7 @@ namespace ParkourScugPlugin.RevenantAbilities
                 {
                     sprites[num] = new FSprite("pixel");
                     sprites[num].anchorY = 0f;
-                    sprites[num].shader = rCam.game.rainWorld.Shaders["HologramBehindTerrain"];
+                    sprites[num].shader = Owner.room.game.rainWorld.Shaders["HologramBehindTerrain"];
                     sprites[num].color = ProgramColor;
                 }
                 return sprites;
@@ -407,7 +440,7 @@ namespace ParkourScugPlugin.RevenantAbilities
             if (!HasProgram) { return; }
             if (program.hologram != null && program.showHologram)
             {
-                FSprite[] newSprites = program.GetHologramSprites(rCam);
+                FSprite[] newSprites = program.GetHologramSprites();
                 FSprite[] oldSprites = sLeaser.sprites;
                 sLeaser.sprites = new FSprite[sLeaser.sprites.Length + program.hologram.LinesCount];
                 for (int i = 0; i < oldSprites.Length; i++)

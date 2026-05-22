@@ -35,6 +35,8 @@ namespace ParkourScugPlugin
             On.SlugcatHand.EngageInMovement += SlugcatHandEngageInMovement;
             On.Player.ThrowObject += PlayerThrow;
             On.Player.Jump += PlayerJump;
+            On.GraphicsModule.InitiateSprites += GraphicsModule_InitiateSprites;
+            On.GraphicsModule.DrawSprites += GraphicsModule_DrawSprites;
             On.DataPearl.Update += DataPearl_Update;
             On.DataPearl.InitiateSprites += DataPearl_InitiateSprites;
             On.DataPearl.DrawSprites += DataPearl_DrawSprites;
@@ -96,6 +98,22 @@ namespace ParkourScugPlugin
         {
             orig(pearl, sLeaser, rCam, timeStacker, camPos);
             GetPearlData(pearl).DrawSprites(sLeaser, rCam, timeStacker, camPos);
+        }
+        private void GraphicsModule_InitiateSprites(On.GraphicsModule.orig_InitiateSprites orig, GraphicsModule graphicsModule, RoomCamera.SpriteLeaser sLeaser, RoomCamera rCam)
+        {
+            orig(graphicsModule, sLeaser, rCam);
+            if (graphicsModule.owner is Player player && IsParkourScug(player))
+            {
+                GetParkourScugData(player).animationData.InitiateSprites(sLeaser, rCam);
+            }
+        }
+        private void GraphicsModule_DrawSprites(On.GraphicsModule.orig_DrawSprites orig, GraphicsModule graphicsModule, RoomCamera.SpriteLeaser sLeaser, RoomCamera rCam, float timeStacker, Vector2 camPos)
+        {
+            orig(graphicsModule, sLeaser, rCam, timeStacker, camPos);
+            if (graphicsModule.owner is Player player && IsParkourScug(player))
+            {
+                GetParkourScugData(player).animationData.DrawSprites(sLeaser, rCam, timeStacker, camPos);
+            }
         }
     }
 }

@@ -29,7 +29,7 @@ namespace ParkourScugPlugin
         private Player.InputPackage input => player.input[0];
         private PlayerGraphics GetPlayerGraphics() => (player.graphicsModule as PlayerGraphics);
 
-        private Player.Grasp FirstGrasp
+        public Player.Grasp FirstGrasp
         {
             get
             {
@@ -97,6 +97,7 @@ namespace ParkourScugPlugin
         private Vector2 previousVelocity = Vector2.zero;
 
         public bool betterSlide = true;
+        public bool canMaul = false;
 
 
         public ParkourScugData(Player player)
@@ -120,10 +121,19 @@ namespace ParkourScugPlugin
         }
         private void InitializePlayer()
         {
-            program = new HunterProgram(player);
+            float rand = UnityEngine.Random.value;
+            if (rand > .5f)
+            {
+                program = new MirosKillerProgram(player);
+            }
+            else
+            {
+                program = new HunterProgram(player);
+            }
         }
         private void AbilityTick()
         {
+            if (!canMaul) { player.maulTimer = 0; }
             if (FirstGrasp?.grabbed is DataPearl && input.y == 1 && input.spec)
             {
                 DataPearl pearl = FirstGrasp.grabbed as DataPearl;

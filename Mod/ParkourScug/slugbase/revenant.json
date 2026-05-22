@@ -56,6 +56,6 @@
       }
     ],
 
-    "can_maul": false
+    "can_maul": true
   }
 }

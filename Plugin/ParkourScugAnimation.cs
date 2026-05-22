@@ -1,4 +1,5 @@
-﻿using System;
+﻿using ParkourScugPlugin.RevenantAbilities;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -21,13 +22,52 @@ namespace ParkourScugPlugin.ParkourScug
     {
         public ParkourScugData playerData;
         public Player player;
+        public GraphicsModule graphicsModule;
+        private readonly List<FSprite> spriteAdder;
+        public void AddSprites(FSprite[] sprites) { foreach (FSprite sprite in sprites) spriteAdder.Add(sprite); }
+        public void AddSprites(List<FSprite> sprites) { foreach (FSprite sprite in sprites) spriteAdder.Add(sprite); }
 
 
         public ParkourScugAnimation(ParkourScugData playerData)
         {
             this.playerData = playerData;
             player = playerData.player;
+            graphicsModule = player.graphicsModule;
+            spriteAdder = new List<FSprite>();
         }
+
+
+        public void InitiateSprites(RoomCamera.SpriteLeaser sLeaser, RoomCamera rCam)
+        {
+            if (spriteAdder.Count == 0) return;
+
+            FSprite[] oldSprites = sLeaser.sprites;
+            sLeaser.sprites = new FSprite[oldSprites.Length + spriteAdder.Count];
+            for (int i = 0; i < oldSprites.Length; i++)
+            {
+                sLeaser.sprites[i] = oldSprites[i];
+            }
+            for (int i = 0; i < spriteAdder.Count; i++)
+            {
+                sLeaser.sprites[i + oldSprites.Length] = spriteAdder[i];
+            }
+            spriteAdder.Clear();
+            graphicsModule.AddToContainer(sLeaser, rCam, null);
+        }
+        public void DrawSprites(RoomCamera.SpriteLeaser sLeaser, RoomCamera rCam, float timeStacker, Vector2 camPos)
+        {
+            if (spriteAdder.Count > 0)
+            {
+                sLeaser.RemoveAllSpritesFromContainer();
+                graphicsModule.InitiateSprites(sLeaser, rCam);
+            }
+            if (playerData.program != null && playerData.program.showHologram)
+            {
+                MechanicalProgram program = playerData.program;
+                program.DrawHologram(sLeaser, rCam, timeStacker, camPos, sLeaser.sprites.Length - program.hologram.LinesCount);
+            }
+        }
+
 
         public bool OnHandEngageInMovement(On.SlugcatHand.orig_EngageInMovement orig, SlugcatHand hand)
         {
