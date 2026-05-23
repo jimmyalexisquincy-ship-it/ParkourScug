@@ -4,8 +4,8 @@
 	"version": "0.1",
 	"authors": "Toest, FlyingFishBone",
 	"description": "Parkour Scug is the temporary name for this",
-	"requirements": [ "slime-cubed.slugbase" ],
-	"requirements_names": [ "SlugBase" ],
+	"requirements": [ "slime-cubed.slugbase", "fisobs" ],
+	"requirements_names": [ "SlugBase", "Fisobs" ],
 	"priorities": [ "moreslugcats" ],
 	"tags": [ "Custom Slugcat", "Game Mechanics", "Campaigns" ],
 	"checksum_override_version": false

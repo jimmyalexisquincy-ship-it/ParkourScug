@@ -34,6 +34,7 @@
     <Compile Include="AbstractObjectExtensionData.cs" />
     <Compile Include="Creatures\ScavengerMercenary\ScavengerMercenary.cs" />
     <Compile Include="Creatures\ScavengerMercenary\ScavengerMercenaryAI.cs" />
+    <Compile Include="Creatures\ScavengerMercenary\ScavengerMercenaryCritob.cs" />
     <Compile Include="ParkourScug.cs" />
     <Compile Include="ParkourScugAbilities.cs" />
     <Compile Include="ParkourScugAnimation.cs" />
@@ -47,6 +48,9 @@
     </Reference>
     <Reference Include="BepInEx">
       <HintPath>lib\BepInEx.dll</HintPath>
+    </Reference>
+    <Reference Include="Fisobs">
+      <HintPath>lib\Fisobs.dll</HintPath>
     </Reference>
     <Reference Include="HOOKS-Assembly-CSharp">
       <HintPath>lib\HOOKS-Assembly-CSharp.dll</HintPath>

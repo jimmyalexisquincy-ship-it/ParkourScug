@@ -7,11 +7,14 @@ using System.Runtime.CompilerServices;
 using UnityEngine;
 using UnityEngine.Rendering;
 using ParkourScugPlugin.RevenantAbilities;
+using ParkourScugPlugin.Creatures;
+using Fisobs;
 
 namespace ParkourScugPlugin
 {
     [BepInPlugin("com.flyingfishbone.ParkourScug", "Parkour Scug", "0.1")]
     [BepInDependency("slime-cubed.slugbase")]
+    [BepInDependency("fisobs")]
     public class ParkourScugPlugin : BaseUnityPlugin
     {
         public static ManualLogSource logger;
@@ -40,6 +43,8 @@ namespace ParkourScugPlugin
             On.DataPearl.Update += DataPearl_Update;
             On.DataPearl.InitiateSprites += DataPearl_InitiateSprites;
             On.DataPearl.DrawSprites += DataPearl_DrawSprites;
+
+            //Fisobs.Core.Content.Register(new ScavengerMercenaryCritob());
 
             logger.LogInfo("Parkour Scug plugin loaded!");
         }

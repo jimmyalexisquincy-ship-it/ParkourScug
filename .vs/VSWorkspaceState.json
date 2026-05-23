@@ -3,7 +3,10 @@
     "",
     "\\Mod",
     "\\Mod\\ParkourScug",
+    "\\Mod\\ParkourScug\\modify",
+    "\\Mod\\ParkourScug\\modify\\world",
     "\\Mod\\ParkourScug\\slugbase",
+    "\\Mod\\ParkourScug\\world",
     "\\Plugin"
   ],
   "SelectedNode": "\\Plugin\\ParkourScugPlugin.slnx",
