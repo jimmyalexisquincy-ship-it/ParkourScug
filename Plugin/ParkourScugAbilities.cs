@@ -38,7 +38,7 @@ namespace ParkourScugPlugin.RevenantAbilities
         protected override void ConnectToPlayer()
         {
             playerData.canMaul = true;
-            showHologram = true;
+            showHologram = false;
         }
         protected override void DisconnectFromPlayer()
         {
