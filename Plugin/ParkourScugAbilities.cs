@@ -38,26 +38,27 @@ namespace ParkourScugPlugin.RevenantAbilities
         protected override void ConnectToPlayer()
         {
             playerData.canMaul = true;
+            showHologram = true;
         }
         protected override void DisconnectFromPlayer()
         {
             playerData.canMaul = false;
+            wantToShowHologram = true;
         }
         protected override void PlayerTick()
         {
             bool flag;
 
-            if (hologram != null && false)
+            if (hologram != null)
             {
-                wantToShowHologram = false;
                 float closestDist = float.MaxValue;
                 Creature closestCrit = null;
-                foreach (Creature crit in player.room.updateList)
+                foreach (UpdatableAndDeletable roomObj in player.room.updateList)
                 {
+                    if (!(roomObj is Creature crit) || crit == player) continue;
+                    Custom.LogImportant("wawa" + crit.GetType());
                     flag = true; // Add cases (for example dead creatures dont get highlighted)
                     if (!flag) continue;
-
-                    if (!wantToShowHologram) wantToShowHologram = true;
                     Vector2 critPos = Vector2.zero;
                     foreach (BodyChunk critChunk in crit.bodyChunks) critPos += critChunk.pos;
                     critPos /= crit.bodyChunks.Length;
@@ -70,10 +71,15 @@ namespace ParkourScugPlugin.RevenantAbilities
                 }
                 if (closestCrit != null)
                 {
+                    wantToShowHologram = true;
                     Vector2 critPos = Vector2.zero;
                     foreach (BodyChunk critChunk in closestCrit.bodyChunks) critPos += critChunk.pos;
                     critPos /= closestCrit.bodyChunks.Length;
-                    enemyHighlighter.pos = critPos;
+                    enemyHighlighter.pos = critPos - player.firstChunk.pos;
+                }
+                else
+                {
+                    //wantToShowHologram = false;
                 }
             }
 
