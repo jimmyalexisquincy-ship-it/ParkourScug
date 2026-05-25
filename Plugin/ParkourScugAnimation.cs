@@ -1,4 +1,4 @@
-﻿using ParkourScugPlugin.RevenantAbilities;
+﻿using ParkourScugPlugin.RevenantAbilities; //wa
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -22,8 +22,9 @@ namespace ParkourScugPlugin.ParkourScug
     {
         public ParkourScugData playerData;
         public Player player;
-        public GraphicsModule graphicsModule;
+        public PlayerGraphics graphicsModule;
         private readonly List<FSprite> spriteAdder;
+        // Rework the entirity of AddSprites
         public void AddSprites(FSprite[] sprites) { foreach (FSprite sprite in sprites) spriteAdder.Add(sprite); }
         public void AddSprites(List<FSprite> sprites) { foreach (FSprite sprite in sprites) spriteAdder.Add(sprite); }
 
@@ -32,15 +33,18 @@ namespace ParkourScugPlugin.ParkourScug
         {
             this.playerData = playerData;
             player = playerData.player;
-            graphicsModule = player.graphicsModule;
+            graphicsModule = player.graphicsModule as PlayerGraphics;
             spriteAdder = new List<FSprite>();
         }
 
 
         public void InitiateSprites(RoomCamera.SpriteLeaser sLeaser, RoomCamera rCam)
         {
+            if (playerData.program != null && playerData.program.showHologram)
+            {
+                playerData.program.InitializeHologram();
+            }
             if (spriteAdder.Count == 0) return;
-
             FSprite[] oldSprites = sLeaser.sprites;
             sLeaser.sprites = new FSprite[oldSprites.Length + spriteAdder.Count];
             for (int i = 0; i < oldSprites.Length; i++)
@@ -58,10 +62,19 @@ namespace ParkourScugPlugin.ParkourScug
         {
             if (spriteAdder.Count > 0)
             {
-                sLeaser.RemoveAllSpritesFromContainer();
-                graphicsModule.InitiateSprites(sLeaser, rCam);
+                ParkourScugPlugin.logger.LogInfo("Initiating additional player sprites");
+                try
+                {
+                    sLeaser.RemoveAllSpritesFromContainer();
+                    graphicsModule.InitiateSprites(sLeaser, rCam);
+                    ParkourScugPlugin.logger.LogMessage("Finished initiating additional player sprites");
+                }
+                catch (Exception e)
+                {
+                    ParkourScugPlugin.logger.LogError("Error initiating added player sprites: " + e);
+                }
             }
-            if (playerData.program != null && playerData.program.showHologram)
+            else if (playerData.program != null && playerData.program.showHologram)
             {
                 MechanicalProgram program = playerData.program;
                 program.DrawHologram(sLeaser, rCam, timeStacker, camPos, sLeaser.sprites.Length - program.hologram.LinesCount);

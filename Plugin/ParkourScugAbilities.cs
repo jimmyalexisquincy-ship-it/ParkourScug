@@ -1,4 +1,4 @@
-﻿using IL.MoreSlugcats; // wawawawa
+﻿using IL.MoreSlugcats; // wawawawawa
 using RWCustom;
 using System;
 using System.Collections.Generic;
@@ -32,13 +32,13 @@ namespace ParkourScugPlugin.RevenantAbilities
                 hologram = new NSHSwarmer.Shape(null, NSHSwarmer.Shape.ShapeType.Sphere, new Vector3(0f, 0f, 0f), 30f, 30f);
                 enemyHighlighter = new NSHSwarmer.Shape(null, NSHSwarmer.Shape.ShapeType.Cube, new Vector3(0f, 0f, 0f), 20f, 20f);
                 hologram.subShapes.Add(enemyHighlighter);
-                playerData.animationData.AddSprites(GetHologramSprites());
+                //playerData.animationData.AddSprites(GetHologramSprites());
             }
         }
         protected override void ConnectToPlayer()
         {
             playerData.canMaul = true;
-            showHologram = true;
+            showHologram = false;
         }
         protected override void DisconnectFromPlayer()
         {
@@ -56,7 +56,6 @@ namespace ParkourScugPlugin.RevenantAbilities
                 foreach (UpdatableAndDeletable roomObj in player.room.updateList)
                 {
                     if (!(roomObj is Creature crit) || crit == player) continue;
-                    Custom.LogImportant("wawa" + crit.GetType());
                     flag = true; // Add cases (for example dead creatures dont get highlighted)
                     if (!flag) continue;
                     Vector2 critPos = Vector2.zero;
@@ -75,11 +74,11 @@ namespace ParkourScugPlugin.RevenantAbilities
                     Vector2 critPos = Vector2.zero;
                     foreach (BodyChunk critChunk in closestCrit.bodyChunks) critPos += critChunk.pos;
                     critPos /= closestCrit.bodyChunks.Length;
-                    enemyHighlighter.pos = critPos - player.firstChunk.pos;
+                    enemyHighlighter.pos = (Vector3)(critPos - player.firstChunk.pos);
                 }
                 else
                 {
-                    //wantToShowHologram = false;
+                    //enemyHighlighter.pos = Vector3.zero;
                 }
             }
 
@@ -100,6 +99,11 @@ namespace ParkourScugPlugin.RevenantAbilities
                 Creature creature = player.grasps[num12].grabbed as Creature;
                 creature.Violence(player.bodyChunks[0], new Vector2(0f, 0f), player.grasps[num12].grabbedChunk, null, Player.DamageType.Bite, 4f, 15f);
             }
+        }
+        public override void DrawHologram(RoomCamera.SpriteLeaser sLeaser, RoomCamera rCam, float timeStacker, Vector2 camPos, int sprite)
+        {
+            base.DrawHologram(sLeaser, rCam, timeStacker, camPos, sprite);
+            if (!inPlayer) return;
         }
         protected override void Tick()
         {
@@ -328,14 +332,21 @@ namespace ParkourScugPlugin.RevenantAbilities
         }
         public virtual void DrawHologram(RoomCamera.SpriteLeaser sLeaser, RoomCamera rCam, float timeStacker, Vector2 camPos, int sprite)
         {
-            Vector2 vector = Vector2.Lerp(Owner.firstChunk.lastPos, Owner.firstChunk.pos, timeStacker);
-            Vector2 vector3 = new Vector3(1f, 0f);
-            float pointsWeight = 1f;
-            Vector2 pointsVec = vector;
-            float maxDist = 1f;
-            float num3 = Custom.SCurve(Mathf.Lerp(lastHoloFade, holoFade, timeStacker), 0.65f);
-            num3 *= hologram.Fade.SmoothValue(timeStacker);
-            hologram.Draw(sLeaser, rCam, timeStacker, vector, camPos, ref sprite, Custom.VecToDeg(Vector3.Slerp(vector3, new Vector2(0f, 1f), 0.51f)), Mathf.Lerp(lastHoloErrors, holoErrors, timeStacker), num3, shakeErr: false, ref pointsVec, ref pointsWeight, ref maxDist, ref directionsPower);
+            try 
+            {
+                Vector2 vector = Vector2.Lerp(Owner.firstChunk.lastPos, Owner.firstChunk.pos, timeStacker);
+                Vector2 vector3 = new Vector3(1f, 0f);
+                float pointsWeight = 1f;
+                Vector2 pointsVec = vector;
+                float maxDist = 1f;
+                float num3 = Custom.SCurve(Mathf.Lerp(lastHoloFade, holoFade, timeStacker), 0.65f);
+                num3 *= hologram.Fade.SmoothValue(timeStacker);
+                hologram.Draw(sLeaser, rCam, timeStacker, vector, camPos, ref sprite, Custom.VecToDeg(Vector3.Slerp(vector3, new Vector2(0f, 1f), 0.51f)), Mathf.Lerp(lastHoloErrors, holoErrors, timeStacker), num3, shakeErr: false, ref pointsVec, ref pointsWeight, ref maxDist, ref directionsPower);
+            }
+            catch (Exception e)
+            {
+                ParkourScugPlugin.logger.LogError("Error drawing hologram for program " + ToString() + ": " + e);
+            }
         }
         private void Initialize()
         {            
@@ -372,7 +383,12 @@ namespace ParkourScugPlugin.RevenantAbilities
                 {
                     holoFade = Mathf.Max(0f, holoFade - 1f / 12f);
                 }
-                hologram.Update(false || UnityEngine.Random.value < 0.05f, holoErrors, holoFade, Owner.firstChunk.pos - Owner.firstChunk.lastPos, 0f, ref directionsPower);
+
+                try { hologram.Update(false || UnityEngine.Random.value < 0.05f, holoErrors, holoFade, Owner.firstChunk.pos - Owner.firstChunk.lastPos, 0f, ref directionsPower); }
+                catch (Exception e)
+                {
+                    ParkourScugPlugin.logger.LogError("Error updating hologram for program " + ToString() + ": " + e);
+                }
             }
         }
         private void HologramInit()
