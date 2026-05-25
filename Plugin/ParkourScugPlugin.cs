@@ -14,7 +14,7 @@ namespace ParkourScugPlugin
 {
     [BepInPlugin("com.flyingfishbone.ParkourScug", "Parkour Scug", "0.1")]
     [BepInDependency("slime-cubed.slugbase")]
-    [BepInDependency("fisobs")]
+
     public class ParkourScugPlugin : BaseUnityPlugin
     {
         public static ManualLogSource logger;
@@ -33,6 +33,14 @@ namespace ParkourScugPlugin
         public void OnEnable()
         {
             logger = BepInEx.Logging.Logger.CreateLogSource("   ParkourScugPlugin");
+            try
+            {
+                Fisobs.Core.Content.Register();
+            }
+            catch
+            {
+                logger.LogInfo("failed to register fisobs content");
+            }
 
             On.Player.Update += PlayerUpdateTick;
             On.SlugcatHand.EngageInMovement += SlugcatHandEngageInMovement;

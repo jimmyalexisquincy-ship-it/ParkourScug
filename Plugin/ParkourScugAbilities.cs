@@ -38,7 +38,6 @@ namespace ParkourScugPlugin.RevenantAbilities
         protected override void ConnectToPlayer()
         {
             playerData.canMaul = true;
-            showHologram = false;
         }
         protected override void DisconnectFromPlayer()
         {
@@ -46,6 +45,38 @@ namespace ParkourScugPlugin.RevenantAbilities
         }
         protected override void PlayerTick()
         {
+            bool flag;
+
+            if (hologram != null && false)
+            {
+                wantToShowHologram = false;
+                float closestDist = float.MaxValue;
+                Creature closestCrit = null;
+                foreach (Creature crit in player.room.updateList)
+                {
+                    flag = true; // Add cases (for example dead creatures dont get highlighted)
+                    if (!flag) continue;
+
+                    if (!wantToShowHologram) wantToShowHologram = true;
+                    Vector2 critPos = Vector2.zero;
+                    foreach (BodyChunk critChunk in crit.bodyChunks) critPos += critChunk.pos;
+                    critPos /= crit.bodyChunks.Length;
+                    float critDist = (critPos - player.firstChunk.pos).magnitude;
+                    if (critDist < closestDist)
+                    {
+                        closestDist = critDist;
+                        closestCrit = crit;
+                    }
+                }
+                if (closestCrit != null)
+                {
+                    Vector2 critPos = Vector2.zero;
+                    foreach (BodyChunk critChunk in closestCrit.bodyChunks) critPos += critChunk.pos;
+                    critPos /= closestCrit.bodyChunks.Length;
+                    enemyHighlighter.pos = critPos;
+                }
+            }
+
             if (player.animation == Player.AnimationIndex.None && player.standing && player.input[0].x != 0 && player.canJump > 0)
             {
                 player.bodyChunks[0].vel.x += player.input[0].x;
@@ -310,7 +341,7 @@ namespace ParkourScugPlugin.RevenantAbilities
         private float[,] directionsPower = new float[12, 3];
         private float lastHoloErrors = 0f;
         private float lastHoloFade = 0f;
-        private bool wantToShowHologram = true;
+        public bool wantToShowHologram = true;
         private void UpdateAnimation()
         {
             // Hologram stuff (stolen from NSH)
