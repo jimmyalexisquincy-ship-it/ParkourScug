@@ -9,15 +9,11 @@ using UnityEngine.Rendering;
 using ParkourScugPlugin.RevenantAbilities;
 using ParkourScugPlugin.Creatures;
 using Fisobs;
-using Fisobs.Core;
-using MonoMod.RuntimeDetour;
-using System.Reflection;
 
 namespace ParkourScugPlugin
 {
     [BepInPlugin("com.flyingfishbone.ParkourScug", "Parkour Scug", "0.1")]
     [BepInDependency("slime-cubed.slugbase")]
-    [BepInDependency("io.github.dual.fisobs", BepInDependency.DependencyFlags.HardDependency)]
 
     public class ParkourScugPlugin : BaseUnityPlugin
     {
@@ -34,8 +30,6 @@ namespace ParkourScugPlugin
 
         private bool IsParkourScug(Player player) { return player.SlugCatClass.ToString().Equals("revenant"); }
 
-        public const BindingFlags ALL_FLAGS = BindingFlags.Public | BindingFlags.Instance | BindingFlags.Static | BindingFlags.NonPublic;
-
         public void OnEnable()
         {
             logger = BepInEx.Logging.Logger.CreateLogSource("   ParkourScugPlugin");
@@ -47,27 +41,7 @@ namespace ParkourScugPlugin
             {
                 logger.LogInfo("failed to register fisobs content");
             }
-            On.RainWorld.OnModsDisabled += (orig, self, newlyDisabledMods) =>
-            {
-                orig.Invoke(self, newlyDisabledMods);
-                for (int i = 0; i < newlyDisabledMods.Length; i++)
-                {
-                    if (newlyDisabledMods[i].id == "com.flyingfishbone.ParkourScug")
-                    {
-                        if (MultiplayerUnlocks.CreatureUnlockList.Contains(SandboxUnlockID.CamoCentipede))
-                        {
-                            MultiplayerUnlocks.CreatureUnlockList.Remove(SandboxUnlockID.CamoCentipede);
-                        }
-                        if (MultiplayerUnlocks.CreatureUnlockList.Contains(SandboxUnlockID.SmallCamoCentipede))
-                        {
-                            MultiplayerUnlocks.CreatureUnlockList.Remove(SandboxUnlockID.SmallCamoCentipede);
-                        }
-                        CreatureTemplateType.UnregisterValues();
-                        SandboxUnlockID.UnregisterValues();
-                        return;
-                    }
-                }
-            };
+
             On.Player.Update += PlayerUpdateTick;
             On.SlugcatHand.EngageInMovement += SlugcatHandEngageInMovement;
             On.Player.ThrowObject += PlayerThrow;
@@ -79,13 +53,6 @@ namespace ParkourScugPlugin
             On.DataPearl.DrawSprites += DataPearl_DrawSprites;
 
             //Fisobs.Core.Content.Register(new ScavengerMercenaryCritob());
-            new Hook(typeof(Centipede).GetMethod("get_Edible", ALL_FLAGS), CamoHooks.Edible);
-            new Hook(typeof(Centipede).GetMethod("get_AutomaticPickUp", ALL_FLAGS), CamoHooks.AutomaticPickUp);
-            Content.Register(
-            [
-                new CamoCentipedeCritob(),
-                new SmallCamoCentipedeCritob(),
-            ]);
 
             logger.LogInfo("Parkour Scug plugin loaded!");
         }
